@@ -1,0 +1,58 @@
+{
+  "pathMap": {
+    "POS61": "D:\\apache-tomcat-7.0.41-windows-x64\\apache-tomcat-7.0.41\\webapps\\Tech-Trans.Vaadin.esPOS61.MIS\\WEB-INF\\classes\\",
+    "POS65": "D:\\apache-tomcat-7.0.41-windows-x64\\apache-tomcat-7.0.41\\webapps\\65\\WEB-INF\\classes\\",
+    "POS65YTC": "D:\\apache-tomcat-7.0.41-windows-x64\\apache-tomcat-7.0.41\\webapps\\Tech-Trans.Vaadin.esPOS65.MIS.Mall.YTC\\WEB-INF\\classes\\"
+  },
+  "findClassConfig": {
+    "readMe":"[要重启tomcat]替换war解压的tomcat下对应路径：{path} \n#所有代码已提交，请不要再问有没有提交代码",
+    "zipPath": "C:\\Users\\admin\\Desktop\\替换.zip"
+  },
+  "sqlHandle": {
+    "sqlDataHandlePath": "C:\\Users\\admin\\Desktop\\sqlDataHandle.txt"
+  },
+  "ImportDmp": {
+    "configPath": "C:\\Users\\admin\\Desktop\\dmpImp.txt",
+    "beforeSqlList": [
+      "DROP USER {TO_DATABASE_NAME} CASCADE;",
+      "COMMIT;",
+      "CREATE USER {TO_DATABASE_NAME:} IDENTIFIED BY {TO_DATABASE_NAME:};",
+      "GRANT CONNECT TO {TO_DATABASE_NAME:};",
+      "GRANT RESOURCE TO {TO_DATABASE_NAME:} ;",
+      "GRANT DBA TO {TO_DATABASE_NAME:} ;",
+      "ALTER USER {TO_DATABASE_NAME:} DEFAULT TABLESPACE \"DATA01\" TEMPORARY TABLESPACE \"TEMP\" ;",
+      "/*导完库 清掉用户们的信息*/",
+      "UPDATE {TO_DATABASE_NAME:}.XF_STAFF SET XF_STAFFEMAIL = '*';",
+      "UPDATE {TO_DATABASE_NAME:}.XF_MDTENANT SET XF_EMAIL4MALLMSG = '*', XF_MDMOBILE = '*';",
+      "UPDATE {TO_DATABASE_NAME:}.XF_MDTENANTATTN SET XF_EMAIL     = '*'; ",
+      "UPDATE {TO_DATABASE_NAME:}.Xf_Store SET XF_EMAIL = '*';",
+      "UPDATE {TO_DATABASE_NAME:}.XF_STAFF SET XF_PASSWORD = '123' WHERE XF_STAFFCODE = 'ADMIN';",
+      "/*导完库 代理所有审批人*/",
+      "DELETE FROM XF_WFLOWACTING;",
+      "CREATE SEQUENCE TEMP_SEQ;",
+      "INSERT INTO XF_WFLOWACTING",
+      "  SELECT TEMP_SEQ.NEXTVAL,",
+      "         '10',",
+      "         XF_STAFFCODE,",
+      "         'ADMIN',",
+      "         SYSDATE - 1,",
+      "         SYSDATE + 365,",
+      "         'ADMIN',",
+      "         SYSDATE,",
+      "         SYSDATE",
+      "    FROM (SELECT DISTINCT REGEXP_SUBSTR(XF_TOSTAFFLIST, '[^,]+', 1, 1) XF_STAFFCODE",
+      "            FROM XF_WFLOWSTEP) T",
+      "   WHERE XF_STAFFCODE IS NOT NULL",
+      "     AND XF_STAFFCODE <> '*';",
+      "DROP SEQUENCE TEMP_SEQ;",
+      "COMMIT;"
+    ]
+  },
+  "updateDb": {
+    "dataBaseDriver": "",
+    "dataBaseUrl": ""
+  },
+  "AddOracleTns": {
+    "tnsPath": "D:\\oracleClient\\admin\\product\\11.2.0\\client_1\\network\\admin\\tnsnames.ora"
+  }
+}
