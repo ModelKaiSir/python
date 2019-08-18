@@ -1,5 +1,8 @@
 import pathlib
 import time
+import subprocess
+import sys
+import curses
 
 
 # 文件管理工具
@@ -29,12 +32,17 @@ class CopyFileSystem:
         else:
             print(string)
 
-    def main(self, window):
-
+    def start(self, window):
         self.window = window
+        while True:
+            self.main()
+        pass
+    pass
 
-        source_dir = input(self.input_source_msg)
-        target_dir = input(self.input_target_msg)
+    def main(self):
+
+        source_dir = "G:\MUSIC\华语"#input(self.input_source_msg)
+        target_dir = "E:\MUSIC"#input(self.input_target_msg)
 
         # 依次从目录的最上级往下 创建不存在的目录
         def create_dir(path: pathlib.Path):
@@ -43,10 +51,9 @@ class CopyFileSystem:
             for _PATH in parents:
                 if not _PATH.exists():
                     _PATH.mkdir()
-
         pass
 
-        print(self.tips)
+        self.add_info(self.tips_point, "Start Running")
         space = ""
         source = pathlib.Path(source_dir)
         tag = str(source.parts[-1])
@@ -77,6 +84,9 @@ class CopyFileSystem:
                     pass
             end_time = time.time()
             self.add_info(self.tips_point, "copy file success in Time：{}".format(end_time - start_time))
+            # subprocess.Popen("shutdown -s -t 60", shell=True,
+            #                  stdin=subprocess.PIPE,
+            #                  encoding="GBK", stdout=sys.stdout)
         except BaseException as e:
             self.add_info(self.error_msg_point, "Error {}".format(str(e)))
 
@@ -111,5 +121,6 @@ def generate_file(space, source_dir, target_dir, tag, path: pathlib.Path):
 
 system = CopyFileSystem()
 # system.main(source_dir=input("输入源目录："), target_dir=input("输入吗目标目录："))
+system.main()
 # curses.wrapper(system.main)
-system.main(None)
+# curses.wrapper(system.start)
