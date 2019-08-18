@@ -37,12 +37,13 @@ class CopyFileSystem:
         while True:
             self.main()
         pass
+
     pass
 
     def main(self):
 
-        source_dir = "G:\MUSIC\华语"#input(self.input_source_msg)
-        target_dir = "E:\MUSIC"#input(self.input_target_msg)
+        source_dir = "G:\MUSIC\华语"  # input(self.input_source_msg)
+        target_dir = "E:\MUSIC"  # input(self.input_target_msg)
 
         # 依次从目录的最上级往下 创建不存在的目录
         def create_dir(path: pathlib.Path):
@@ -51,6 +52,7 @@ class CopyFileSystem:
             for _PATH in parents:
                 if not _PATH.exists():
                     _PATH.mkdir()
+
         pass
 
         self.add_info(self.tips_point, "Start Running")
@@ -113,7 +115,13 @@ def generate_file(space, source_dir, target_dir, tag, path: pathlib.Path):
             pass
     elif path.is_file():
         target_path = pathlib.Path(str(path.absolute()).replace(source_dir, target_dir + "\\" + tag))
+        a = target_path.stat().st_size
+        b = path.stat().st_size
+
         if not target_path.exists():
+            yield path, target_path
+        elif a != b:
+            target_path.unlink()
             yield path, target_path
     pass
     pass
