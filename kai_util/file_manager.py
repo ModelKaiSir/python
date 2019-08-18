@@ -7,7 +7,11 @@ import curses
 
 # 文件管理工具
 class CopyFileSystem:
-    def __init__(self):
+    MODE_COPYFILE = "COPY_FILE"
+    MODE_DOWNLOAD_LRC = "DOWNLOAD_LRC"
+
+    def __init__(self, mode):
+        self.mode = mode
         self.title = "复制文件工具"
         self.tips = "检查输入的source_dir目录下所有文件与target_dir目录对比，将不存在于target_dir目录的文件复制过来到" \
                     "target_dir"
@@ -86,6 +90,7 @@ class CopyFileSystem:
                     pass
             end_time = time.time()
             self.add_info(self.tips_point, "copy file success in Time：{}".format(end_time - start_time))
+            # 任务完成自动关机
             # subprocess.Popen("shutdown -s -t 60", shell=True,
             #                  stdin=subprocess.PIPE,
             #                  encoding="GBK", stdout=sys.stdout)
@@ -107,6 +112,7 @@ def progress_tag():
 
 
 def generate_file(space, source_dir, target_dir, tag, path: pathlib.Path):
+    # 返回需要复制的文件
     if path.is_dir():
         space += ' '
         for _p in path.iterdir():
@@ -117,7 +123,7 @@ def generate_file(space, source_dir, target_dir, tag, path: pathlib.Path):
         target_path = pathlib.Path(str(path.absolute()).replace(source_dir, target_dir + "\\" + tag))
         a = target_path.stat().st_size
         b = path.stat().st_size
-
+        # 不存在的文件和大小不一致的文件
         if not target_path.exists():
             yield path, target_path
         elif a != b:
