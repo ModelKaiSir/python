@@ -113,8 +113,12 @@ class CopyFileSystem:
 
 def download_lrc(source_dir):
     for _path in file_generate.generate_not_exists_lrc_sound(source_dir):
-        d = lrc_util.LrcDownload(_path)
-        d.download_lrc()
+        try:
+            d = lrc_util.LrcDownload(_path)
+            d.download_lrc()
+            time.sleep(0.2)
+        except BaseException as e:
+            print("网络出错！Error{}".format(str(e)))
         pass
     pass
 

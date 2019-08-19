@@ -1,5 +1,5 @@
 import pathlib
-
+import itertools
 # 文件路径生成器
 
 '''返回对应source_dir在target_dir目录下不存在或大小不一致的文件'''
@@ -31,16 +31,26 @@ def generate_not_exists_file(space, source_dir, target_dir, tag, path: pathlib.P
 
 
 def generate_not_exists_lrc_sound(source_dir):
-    source = pathlib.Path(source_dir)
-    if source.exists():
-        for _files in zip(source.glob("**/*.flac"), source.glob("**/*.mp3")):
-            # 同目录下对应的歌词文件
-            for _file in _files:
-                _file_lrc = _file.with_suffix(".lrc")
-                if not _file_lrc.exists():
-                    yield _file_lrc
+
+    def glob_file(_result, _source, _pattern):
+        for _file in _source.glob(_pattern):
+            _file_lrc = _file.with_suffix(".lrc")
+            if not _file_lrc.exists():
+                _result.append(_file_lrc)
+
+    source_path = pathlib.Path(source_dir)
+    if source_path.exists():
+        # 同目录下对应的歌词文件
+        result = []
+        patterns = ["**/*.flac", "**/*.mp3"]
+        for pattern in patterns:
+            glob_file(result, source_path, pattern)
+
+        for r in result:
+            yield r
 
     pass
+
 
 # 制造一个旋转的线的效果
 def progress_tag():

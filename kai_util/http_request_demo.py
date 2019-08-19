@@ -49,4 +49,14 @@ def main():
     # download_file(_json['result'][0]['lrc'], "周杰伦-枫")
 
 
-main()
+# 批量重命名
+while True:
+    _path = pathlib.Path(input("输入路径："))
+    tag = "周杰伦"
+    for item in _path.glob("**/*.flac"):
+        name = item.name
+        new_name = "{} - {}".format(tag, name)
+        print(new_name)
+        new_item = item.with_name(new_name)
+        item.rename(new_item)
+        pass

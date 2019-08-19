@@ -4,6 +4,7 @@ import urllib.request as request
 import urllib.parse as parse
 import json
 import time
+import re
 
 
 class LrcDownload:
@@ -11,11 +12,9 @@ class LrcDownload:
     @staticmethod
     def generate_lrc(author, json_object):
         for detail in json_object["data"]["song"]["list"]:
-            # 排除伴奏和作者不对的歌曲
-            if author.find(detail["singer"][0]["name"]) != -1 and detail["title"].find("伴奏") == -1:
-                print("info {mid:}:{name:}:{title:}:{signer:}".format(mid=detail["mid"], name=detail["name"],
-                                                                      title=detail["title"],
-                                                                      signer=detail["singer"][0]["name"]))
+            # 优先排除伴奏和作者不对的歌词
+            if detail["singer"][0]["name"].find(author) != -1 and detail["title"].find("伴奏") == -1:
+                print("info {mid:}:{name:}:{title:}:{signer:}".format(mid=detail["mid"], name=detail["name"], title=detail["title"], signer=detail["singer"][0]["name"]))
                 yield detail
         pass
 
@@ -27,13 +26,20 @@ class LrcDownload:
 
         self.source_path = source_path
         self.suffix = source_path.suffix
-        file_name = self.source_path.name.split("-")
-        self.author, self.sound = file_name[0].strip(), file_name[1].strip().replace(str(self.suffix), "")
+        file_name = re.sub(r"[0-9(.lrc)_]+", "", self.source_path.name)
+        file_name = file_name.split("-")
+        if len(file_name) > 1 :
+            self.author, self.sound = file_name[0].strip(), file_name[1].strip()
+        else:
+            self.author, self.sound = "", file_name[0].strip()
         pass
 
     def download_lrc(self):
 
         mid = self.get_sound_mid()
+        if mid is None:
+            print("{} 沒有找到歌词！".format(self.source_path))
+            return
         parameter = {"mid": mid}
         lrc_obj = LrcDownload.send_request(self.api_url, data=parse.urlencode(parameter).encode("UTF-8"))
         _lrc_obj = json.loads(json.load(lrc_obj))
@@ -47,8 +53,11 @@ class LrcDownload:
 
         result_json = LrcDownload.send_request(
             self.qq_music_api_url.format(timetamp=int(float(time.time())), sound=self.sound))
-        mid = self.parse_song(json.load(result_json))
-        return mid
+        if result_json is not None:
+            mid = self.parse_song(json.load(result_json))
+            return mid
+        else:
+            return None
 
     pass
 
@@ -69,6 +78,3 @@ class LrcDownload:
         except BaseException as e:
             print(e)
         pass
-
-
-
