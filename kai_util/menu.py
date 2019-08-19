@@ -65,9 +65,7 @@ class Menu:
         self.menuContent = text
         self.key = next(self.context.menuKeyIter)
         self.tips = tips
-
-        from main import Util
-        self.util = Util
+        self.util = context.util
 
         pass
 
@@ -616,9 +614,3 @@ class GenerateMD5(Menu):
         pass
 
 
-@log(lev='info')
-def dob():
-    print("Hello Word")
-
-
-dob()

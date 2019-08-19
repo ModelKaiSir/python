@@ -2,6 +2,8 @@ import pathlib
 import time
 import subprocess
 import sys
+import file_generate
+import lrc_util
 import curses
 
 
@@ -38,13 +40,24 @@ class CopyFileSystem:
 
     def start(self, window):
         self.window = window
-        while True:
-            self.main()
+        if self.mode == CopyFileSystem.MODE_COPYFILE:
+            self.copy_files()
+        elif self.mode == CopyFileSystem.MODE_DOWNLOAD_LRC:
+            # 下载歌词
+            download_lrc(input("输入目录："))
+            pass
         pass
 
     pass
 
-    def main(self):
+    @staticmethod
+    def finish_shutdown():
+        subprocess.Popen("shutdown -s -t 60", shell=True,
+                         stdin=subprocess.PIPE,
+                         encoding="GBK", stdout=sys.stdout)
+        pass
+
+    def copy_files(self):
 
         source_dir = "G:\MUSIC\华语"  # input(self.input_source_msg)
         target_dir = "E:\MUSIC"  # input(self.input_target_msg)
@@ -65,14 +78,14 @@ class CopyFileSystem:
         tag = str(source.parts[-1])
 
         start_time = time.time()
-        pg_iter = progress_tag()
+        pg_iter = file_generate.progress_tag()
         try:
-            for _path, _target_path in generate_file(space, source_dir, target_dir, tag, source):
+            for _path, _target_path in file_generate.generate_file(space, source_dir, target_dir, tag, source):
 
                 self.add_info(self.tips_point, "> source_dir {} target_dir {}".format(_path, _target_path))
                 # 创建不存在的目录 并将文件复制到目标目录
                 if not _target_path.exists():
-                    self.add_info(self.tips_point, "--> mkdir {}".format(_target_path.parent))
+                    self.add_info(self.tips_point, "--> create dir {}".format(_target_path.parent))
                     create_dir(_target_path)
 
                 max_size = _path.stat().st_size
@@ -91,50 +104,23 @@ class CopyFileSystem:
             end_time = time.time()
             self.add_info(self.tips_point, "copy file success in Time：{}".format(end_time - start_time))
             # 任务完成自动关机
-            # subprocess.Popen("shutdown -s -t 60", shell=True,
-            #                  stdin=subprocess.PIPE,
-            #                  encoding="GBK", stdout=sys.stdout)
+
         except BaseException as e:
             self.add_info(self.error_msg_point, "Error {}".format(str(e)))
 
     pass
 
 
-# 制造一个旋转的线的效果
-def progress_tag():
-    tags = ["\\", "|", "/", "—"]
-    i = -1
-    while True:
-        i += 1
-        if i >= len(tags):
-            i = 0
-        yield tags[i]
-
-
-def generate_file(space, source_dir, target_dir, tag, path: pathlib.Path):
-    # 返回需要复制的文件
-    if path.is_dir():
-        space += ' '
-        for _p in path.iterdir():
-            for _result in generate_file(space, source_dir, target_dir, tag, _p):
-                yield _result
-            pass
-    elif path.is_file():
-        target_path = pathlib.Path(str(path.absolute()).replace(source_dir, target_dir + "\\" + tag))
-        a = target_path.stat().st_size
-        b = path.stat().st_size
-        # 不存在的文件和大小不一致的文件
-        if not target_path.exists():
-            yield path, target_path
-        elif a != b:
-            target_path.unlink()
-            yield path, target_path
-    pass
+def download_lrc(source_dir):
+    for _path in file_generate.generate_not_exists_lrc_sound(source_dir):
+        d = lrc_util.LrcDownload(_path)
+        d.download_lrc()
+        pass
     pass
 
 
-system = CopyFileSystem()
+system = CopyFileSystem(CopyFileSystem.MODE_DOWNLOAD_LRC)
 # system.main(source_dir=input("输入源目录："), target_dir=input("输入吗目标目录："))
-system.main()
+system.start(None)
 # curses.wrapper(system.main)
 # curses.wrapper(system.start)

@@ -47,6 +47,7 @@ class UtilContext:
         self.INVALID_INPUT = "无效的输入"
         self.PUT_LINE = "* {menuContext:<" + str(self.MENU_SPE_LENGTH) + "}"
         self.menuKeyIter = UtilContext.generateId()
+        self.util = Util
         pass
 
     def __formatLine(self, string):
