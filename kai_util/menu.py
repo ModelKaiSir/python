@@ -120,10 +120,10 @@ class FindClassToZip(Menu):
 
     def currentRun(self):
         input_string = input(self.INPUT_MSG)
-        index = input_string.index(":")
-        if index != -1:
-            tag, package_name, suffix = input_string[:index], input_string[index + 1:], input_string[3] if len(
-                input_string) >= 3 else self.def_suffix
+        parameter = input_string.split(":")
+        if len(parameter) > 0:
+            tag, package_name, suffix = parameter[0], parameter[1], input_string[2] if len(
+                parameter) > 2 else self.def_suffix
             # 根据tag找根目录
             root_path = self.pathMap.get(tag)
             root_path_temp = "{}{}".format(root_path, "\\".join(i for i in package_name.split(".")))
@@ -580,7 +580,7 @@ class GenerateMD5(Menu):
         msg = input(self.INPUT_MSG)
         _result = []
         if msg is not None and msg != '':
-            for _index, _msg in enumerate(msg.split(" ")):
+            for _index, _msg in enumerate(msg.split(":")):
                 _md5 = self.getMD5(_msg)
                 self.context.printText(self.RESULT_MSG.format(index=_index + 1, MD5=_md5))
                 _result.append(_md5)
@@ -612,5 +612,3 @@ class GenerateMD5(Menu):
             return cal(source.encode('UTF-8'))
             pass
         pass
-
-

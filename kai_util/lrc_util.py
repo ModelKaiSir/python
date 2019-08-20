@@ -10,12 +10,36 @@ import re
 class LrcDownload:
 
     @staticmethod
-    def generate_lrc(author, json_object):
+    def generate_mid(author, json_object):
+
+        def checking(singer_author, _title, compare_author):
+
+            # 不要伴奏
+            if _title.find("伴奏") == -1:
+                return False
+            # 如果歌曲没有作者信息则不判断作者
+            if not bool(compare_author and compare_author.strip()):
+                return True
+            elif singer_author.find(compare_author) != -1:
+                return True
+
+            return False
+        pass
+
+        def log(_mid, _name, _title, singer):
+            msg = "info {mid:}:{name:}:{title:}:{signer:}"
+            print(msg.format(mid=_mid, name=_name, title=_title, signer=singer))
+        pass
+
         for detail in json_object["data"]["song"]["list"]:
+
+            signer = detail["singer"][0]
+            mid = detail["mid"]
+            name, title = detail["name"], detail["title"]
+            log(mid, name, title, signer["name"])
             # 优先排除伴奏和作者不对的歌词
-            if detail["singer"][0]["name"].find(author) != -1 and detail["title"].find("伴奏") == -1:
-                print("info {mid:}:{name:}:{title:}:{signer:}".format(mid=detail["mid"], name=detail["name"], title=detail["title"], signer=detail["singer"][0]["name"]))
-                yield detail
+            if checking(signer["name"], title, author):
+                yield detail["mid"]
         pass
 
     def __init__(self, source_path: pathlib.Path):
@@ -28,7 +52,7 @@ class LrcDownload:
         self.suffix = source_path.suffix
         file_name = re.sub(r"[0-9(.lrc)_]+", "", self.source_path.name)
         file_name = file_name.split("-")
-        if len(file_name) > 1 :
+        if len(file_name) > 1:
             self.author, self.sound = file_name[0].strip(), file_name[1].strip()
         else:
             self.author, self.sound = "", file_name[0].strip()
@@ -53,6 +77,7 @@ class LrcDownload:
 
         result_json = LrcDownload.send_request(
             self.qq_music_api_url.format(timetamp=int(float(time.time())), sound=self.sound))
+
         if result_json is not None:
             mid = self.parse_song(json.load(result_json))
             return mid
@@ -63,7 +88,7 @@ class LrcDownload:
 
     def parse_song(self, json_obj):
         print(json_obj["data"]["song"]["list"])
-        for detail in LrcDownload.generate_lrc(self.author, json_obj):
+        for detail in LrcDownload.generate_mid(self.author, json_obj):
             # 排除伴奏和作者不对的歌曲
             return detail["mid"]
 
