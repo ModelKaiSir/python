@@ -59,8 +59,8 @@ class CopyFileSystem:
 
     def copy_files(self):
 
-        source_dir = "G:\MUSIC\华语"  # input(self.input_source_msg)
-        target_dir = "E:\MUSIC"  # input(self.input_target_msg)
+        source_dir = input(self.input_source_msg)
+        target_dir = input(self.input_target_msg)
 
         # 依次从目录的最上级往下 创建不存在的目录
         def create_dir(path: pathlib.Path):

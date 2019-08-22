@@ -19,13 +19,14 @@ class LrcDownload:
 
         def checking(singer_author, _title, compare_author):
 
+
             # 不要伴奏
             if _title.find("伴奏") != -1:
                 return False
             # 如果歌曲没有作者信息则不判断作者
             if not bool(compare_author and compare_author.strip()):
                 return True
-            elif singer_author.find(compare_author) != -1:
+            elif re.match(".*({})+?".format(compare_author), singer_author) is not None:
                 return True
 
             return False
@@ -83,14 +84,27 @@ class LrcDownload:
 
     pass
 
-    def get_sound_info(self):
+    def get_sound_info(self, mode="DEF"):
         print("{} : {} ".format(self.author, self.sound))
 
         result_json = LrcDownload.send_request(
             self.qq_music_api_url.format(timetamp=int(float(time.time())), sound=self.sound))
 
         if result_json is not None:
-            return self.parse_song(json.load(result_json))
+            try:
+                if mode == "DEF":
+                    return self.parse_song(json.load(result_json))
+                else:
+                    # 尝试将返回的数据解析成字符串
+                    json_text = result_json.read().decode("utf-8")
+                    json_text = json_text[json_text.find("{"):json_text.rfind("}") + 1]
+                    if bool(json_text and json_text.strip()):
+                        return self.parse_song(json.loads(json_text))
+                    else:
+                        return None
+            except BaseException as e:
+                print(e)
+                return self.get_sound_info(mode="OTHER")
         else:
             return None
         pass
@@ -180,7 +194,6 @@ class LrcDownload:
             image.show()
 
     def parse_song(self, json_obj):
-        print(json_obj["data"]["song"]["list"])
         for detail in LrcDownload.generate_mid(self.author, json_obj):
             # 排除伴奏和作者不对的歌曲
             return detail
@@ -206,6 +219,5 @@ class LrcDownload:
             print(e)
         pass
 
-
-obj = LrcDownload(pathlib.Path("D:/许嵩 - 千古.lrc"))
-obj.analysis_comment()
+json_text = ""
+print(bool(json_text and json_text.strip()))
