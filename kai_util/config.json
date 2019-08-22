@@ -1,4 +1,4 @@
-{
+﻿{
   "pathMap": {
     "POS61": "D:\\apache-tomcat-7.0.41-windows-x64\\apache-tomcat-7.0.41\\webapps\\Tech-Trans.Vaadin.esPOS61.MIS\\WEB-INF\\classes\\",
     "POS65": "D:\\apache-tomcat-7.0.41-windows-x64\\apache-tomcat-7.0.41\\webapps\\65\\WEB-INF\\classes\\",
@@ -45,6 +45,7 @@
       "   WHERE XF_STAFFCODE IS NOT NULL",
       "     AND XF_STAFFCODE <> '*';",
       "DROP SEQUENCE TEMP_SEQ;",
+      "insert into XF_SYSCONFIGDEF (XF_CONFIGNAME, XF_CONFIGVALUE, XF_REMARK, XF_OVERRIDEMODE, XF_FIELDCAPTION, XF_FIELDATTRIB, XF_FIELDSEQ) values ('development_switch', '1', '1 为开启 0 为关闭', 0, null, null, null);",
       "COMMIT;"
     ]
   },

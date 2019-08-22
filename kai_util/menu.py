@@ -32,12 +32,19 @@ class Config:
         # 从目录下面找config.json文件 找不到则生成一个默认的
         _path = pathlib.Path.cwd().joinpath("config.json")
 
+        def parse_data(_content):
+            if _content.startswith(u'\ufeff'):
+                return _content.encode('utf8')[3:].decode('utf8')
+            else:
+                return _content
+
         # 存在文件 解析config
         if pathlib.Path.is_file(_path):
             with open(_path, mode='r', encoding='UTF-8') as f:
                 try:
-                    self.config = json.load(f)
-                except json.decoder.JSONDecodeError:
+                    self.config = json.loads(parse_data(f.read()))
+                except json.decoder.JSONDecodeError as e:
+                    print(e)
                     # json文件为空 初始化config
                     self.initConfig()
                 pass
@@ -168,7 +175,7 @@ class FindClassToZip(Menu):
         # 创建ReadMe
         def writeReadMe(source, _path):
             with open(source.README_PATH, 'a', encoding='utf-8') as file:
-                file.writelines(source.README_TEXT.format(path=_path[_path.find("classes"):-1]))
+                file.writelines(source.README_TEXT.format(path=_path[_path.find("classes"):]))
             pass
 
         # 打包zip
