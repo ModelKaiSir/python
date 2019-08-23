@@ -20,7 +20,7 @@ class LrcDownload:
         def checking(singer_author, _title, compare_author):
 
             # 不要伴奏
-            if _title.find("伴奏") != -1:
+            if re.match(".*(伴奏|demo)+", _title) is not None:
                 return False
             # 如果歌曲没有作者信息则不判断作者
             if not bool(compare_author and compare_author.strip()):
@@ -221,4 +221,5 @@ class LrcDownload:
         except BaseException as e:
             print(e)
         pass
+
 
