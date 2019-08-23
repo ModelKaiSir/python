@@ -1,7 +1,7 @@
 import random
 import itertools
 
-# 投掷600次2颗骰子
+# 投掷600次2颗骰子 Pygal
 roll_value = [a+b for a, b in zip([random.randint(1, 6) for i in range(600)], [random.randint(1, 6) for i in range(600)])]
 print(roll_value)
 # 统计每个值出现的次数

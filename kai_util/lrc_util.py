@@ -19,7 +19,6 @@ class LrcDownload:
 
         def checking(singer_author, _title, compare_author):
 
-
             # 不要伴奏
             if _title.find("伴奏") != -1:
                 return False
@@ -44,6 +43,7 @@ class LrcDownload:
             signer = detail["singer"][0]
             mid = detail["mid"]
             name, title = detail["name"], detail["title"]
+
             # 优先排除伴奏和作者不对的歌词
             if checking(signer["name"], title, author):
                 log(mid, name, title, signer["name"])
@@ -63,18 +63,22 @@ class LrcDownload:
         self.suffix = source_path.suffix
         file_name = re.sub(r"[0-9(.lrc)_]+", "", self.source_path.name)
         file_name = file_name.split("-")
+
         if len(file_name) > 1:
             self.author, self.sound = file_name[0].strip(), file_name[1].strip()
         else:
             self.author, self.sound = "", file_name[0].strip()
+
         pass
 
     def download_lrc(self):
 
         mid = self.get_sound_mid()
+        mid = mid if bool(mid and mid.strip()) else self.get_sound_mid("PLUS")
         if mid is None:
             print("{} 沒有找到歌词！".format(self.source_path))
             return
+
         parameter = {"mid": mid}
         lrc_obj = LrcDownload.send_request(self.api_url, data=parse.urlencode(parameter).encode("UTF-8"))
         _lrc_obj = json.loads(json.load(lrc_obj))
@@ -85,34 +89,33 @@ class LrcDownload:
     pass
 
     def get_sound_info(self, mode="DEF"):
-        print("{} : {} ".format(self.author, self.sound))
+
+        search_str = self.sound if mode == "DEF" else "{} {}".format(self.author, self.sound)
+
+        print("{} : {} ".format(self.author, search_str))
 
         result_json = LrcDownload.send_request(
-            self.qq_music_api_url.format(timetamp=int(float(time.time())), sound=self.sound))
-
+            self.qq_music_api_url.format(timetamp=int(float(time.time())), sound=search_str))
         if result_json is not None:
             try:
-                if mode == "DEF":
-                    return self.parse_song(json.load(result_json))
+                # 尝试将返回的数据解析成字符串
+                json_text = result_json.read().decode("utf-8")
+                json_text = json_text[json_text.find("{"):json_text.rfind("}") + 1]
+                if bool(json_text and json_text.strip()):
+                    return self.parse_song(json.loads(json_text))
                 else:
-                    # 尝试将返回的数据解析成字符串
-                    json_text = result_json.read().decode("utf-8")
-                    json_text = json_text[json_text.find("{"):json_text.rfind("}") + 1]
-                    if bool(json_text and json_text.strip()):
-                        return self.parse_song(json.loads(json_text))
-                    else:
-                        return None
+                    return None
             except BaseException as e:
                 print(e)
-                return self.get_sound_info(mode="OTHER")
+                return None
         else:
             return None
         pass
 
-    def get_sound_mid(self):
+    def get_sound_mid(self, mode="DEF"):
 
-        sound = self.get_sound_info()
-        return sound["mid"]
+        sound = self.get_sound_info(mode)
+        return sound["mid"] if sound is not None else None
 
     pass
 
@@ -171,7 +174,6 @@ class LrcDownload:
         # 打开文件
         path = pathlib.Path("D:/comments.txt")
         with path.open(mode='r', encoding='utf-8') as text:
-
             comments = "".join(text.read())
             comments = comments.replace("\n", "")
             comments = comments.replace("该评论已经被删除", "")
@@ -208,7 +210,8 @@ class LrcDownload:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.100 Safari/537.36"
         }
 
-        _url = parse.quote(url, safe=string.printable)
+        _url = parse.quote_plus(url, safe=string.printable)
+        _url = _url.replace("+", "%20")
 
         req = request.Request(url=_url, headers=headers)
 
@@ -219,5 +222,3 @@ class LrcDownload:
             print(e)
         pass
 
-json_text = ""
-print(bool(json_text and json_text.strip()))
