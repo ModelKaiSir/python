@@ -92,6 +92,8 @@ class CopyFileSystem:
                     create_dir(_target_path)
 
                 max_size = _path.stat().st_size
+
+                self.add_info(self.tips_point, "正在复制中。。。")
                 with _path.open(mode='rb') as _file, _target_path.open('wb') as _write:
                     cache_size = 0
                     while True:
@@ -100,10 +102,12 @@ class CopyFileSystem:
                             break
                         # 显示进度(%)
                         cache_size += len(_byte_data)
-                        info = "{} {:0.4%}".format(next(pg_iter), (cache_size / max_size))
-                        self.add_info(self.progress_point, info)
+                        # info = "{} {:0.4%}".format(next(pg_iter), (cache_size / max_size))
+                        # self.add_info(self.progress_point, info)
                         _write.write(_byte_data)
                     pass
+                self.add_info(self.tips_point, "复制完成。。。")
+            pass
             end_time = time.time()
             self.add_info(self.tips_point, "copy file success in Time：{}".format(end_time - start_time))
             # 任务完成自动关机

@@ -24,7 +24,7 @@ def generate_not_exists_file(space, source_dir, target_dir, tag, path: pathlib.P
             b = path.stat().st_size
             if a != b:
                 target_path.unlink()
-            yield path, target_path
+                yield path, target_path
     pass
     pass
 
