@@ -23,7 +23,7 @@ pass
 
 def rename_not_author():
     # 检查哪些歌曲没有作者信息 正确的歌曲名称为 作者 - 歌名
-    source_dir = pathlib.Path("G:\MUSIC\华语")
+    source_dir = pathlib.Path("E:\MUSIC\华语\周杰伦")
     child_dirs = [path for path in source_dir.iterdir() if path.exists() and path.is_dir()]
 
     result_flac = [[_path for _path in path.glob("**/*.flac") if len(_path.name.split(" - ")) <= 1] for path in
