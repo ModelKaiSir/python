@@ -15,16 +15,16 @@ from PIL import Image
 class LrcDownload:
 
     @staticmethod
-    def generate_mid(author, json_object):
+    def generate_mid(author, sound, json_object):
 
-        def checking(singer_author, _title, compare_author):
+        def checking(singer_author, _title, compare_author, _sound):
 
             # 不要伴奏
             if re.match(".*(伴奏|demo)+", _title) is not None:
                 return False
             # 如果歌曲没有作者信息则不判断作者
             if not bool(compare_author and compare_author.strip()):
-                return True
+                return _title.find(_sound) != -1
             elif re.match(".*({})+?".format(compare_author), singer_author) is not None:
                 return True
 
@@ -45,7 +45,7 @@ class LrcDownload:
             name, title = detail["name"], detail["title"]
 
             # 优先排除伴奏和作者不对的歌词
-            if checking(signer["name"], title, author):
+            if checking(signer["name"], title, author, sound):
                 log(mid, name, title, signer["name"])
                 yield detail
         pass
@@ -61,7 +61,7 @@ class LrcDownload:
 
         self.source_path = source_path
         self.suffix = source_path.suffix
-        file_name = re.sub(r"[0-9(.lrc)_]+", "", self.source_path.name)
+        file_name = re.sub(r"[0-9]|(.lrc)|(\.)", "", self.source_path.name)
         file_name = file_name.split("-")
 
         if len(file_name) > 1:
@@ -100,6 +100,7 @@ class LrcDownload:
             try:
                 # 尝试将返回的数据解析成字符串
                 json_text = result_json.read().decode("utf-8")
+                print(json_text)
                 json_text = json_text[json_text.find("{"):json_text.rfind("}") + 1]
                 if bool(json_text and json_text.strip()):
                     return self.parse_song(json.loads(json_text))
@@ -196,7 +197,7 @@ class LrcDownload:
             image.show()
 
     def parse_song(self, json_obj):
-        for detail in LrcDownload.generate_mid(self.author, json_obj):
+        for detail in LrcDownload.generate_mid(self.author, self.sound, json_obj):
             # 排除伴奏和作者不对的歌曲
             return detail
 
@@ -212,6 +213,7 @@ class LrcDownload:
 
         _url = parse.quote_plus(url, safe=string.printable)
         _url = _url.replace("+", "%20")
+        print(_url)
 
         req = request.Request(url=_url, headers=headers)
 
@@ -221,5 +223,3 @@ class LrcDownload:
         except BaseException as e:
             print(e)
         pass
-
-

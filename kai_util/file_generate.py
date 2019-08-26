@@ -15,13 +15,15 @@ def generate_not_exists_file(space, source_dir, target_dir, tag, path: pathlib.P
             pass
     elif path.is_file():
         target_path = pathlib.Path(str(path.absolute()).replace(source_dir, target_dir + "\\" + tag))
-        a = target_path.stat().st_size
-        b = path.stat().st_size
+
         # 不存在的文件和大小不一致的文件
         if not target_path.exists():
             yield path, target_path
-        elif a != b:
-            target_path.unlink()
+        else:
+            a = target_path.stat().st_size
+            b = path.stat().st_size
+            if a != b:
+                target_path.unlink()
             yield path, target_path
     pass
     pass

@@ -40,6 +40,8 @@ class CopyFileSystem:
 
     def start(self, window):
         self.window = window
+        self.mode = input("输入模式({} {}) :".format(CopyFileSystem.MODE_COPYFILE,CopyFileSystem.MODE_DOWNLOAD_LRC))
+
         if self.mode == CopyFileSystem.MODE_COPYFILE:
             self.copy_files()
         elif self.mode == CopyFileSystem.MODE_DOWNLOAD_LRC:
@@ -80,7 +82,7 @@ class CopyFileSystem:
         start_time = time.time()
         pg_iter = file_generate.progress_tag()
         try:
-            for _path, _target_path in file_generate.generate_file(space, source_dir, target_dir, tag, source):
+            for _path, _target_path in file_generate.generate_not_exists_file(space, source_dir, target_dir, tag, source):
 
                 self.add_info(self.tips_point, "> source_dir {} target_dir {}".format(_path, _target_path))
                 # 创建不存在的目录 并将文件复制到目标目录
