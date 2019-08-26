@@ -21,6 +21,7 @@ class CopyFileSystem:
         # 终端模式
         self.curses_mode = False
         self.window = None
+        self.has_error = False
         self.tips_point = 0
         self.error_msg_point = 30
         self.progress_point = 10
@@ -44,6 +45,7 @@ class CopyFileSystem:
         self.finish_shutdown_switch = input("要在任务完成后关闭计算机吗？ Y/N")
 
         if self.mode == CopyFileSystem.MODE_COPYFILE:
+            self.input_source_msg, self.input_target_msg = input(self.input_source_msg), input(self.input_target_msg)
             self.copy_files()
         elif self.mode == CopyFileSystem.MODE_DOWNLOAD_LRC:
             # 下载歌词
@@ -60,10 +62,7 @@ class CopyFileSystem:
                          encoding="GBK", stdout=sys.stdout)
         pass
 
-    def copy_files(self):
-
-        source_dir = input(self.input_source_msg)
-        target_dir = input(self.input_target_msg)
+    def copy_files(self, source_dir, target_dir):
 
         # 依次从目录的最上级往下 创建不存在的目录
         def create_dir(path: pathlib.Path):
@@ -110,13 +109,17 @@ class CopyFileSystem:
             pass
             end_time = time.time()
             self.add_info(self.tips_point, "copy file success in Time：{}".format(end_time - start_time))
+
+            if self.has_error:
+                # 复制过程中有错误 再执行一次
+                self.has_error = False
+                self.copy_files(self.input_source_msg, self.input_target_msg)
             # 任务完成自动关机
             if self.finish_shutdown_switch.upper() == 'N':
                 self.finish_shutdown()
-
         except BaseException as e:
-            self.add_info(self.error_msg_point, "Error {}".format(str(e)))
-
+            self.add_info(self.error_msg_point, "复制出错 继续下一首 Error {}".format(str(e)))
+            self.has_error = True
     pass
 
 
