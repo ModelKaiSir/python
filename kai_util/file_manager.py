@@ -26,7 +26,7 @@ class CopyFileSystem:
         self.progress_point = 10
 
         self.read_size = 4096
-
+        self.finish_shutdown_switch = 'N'
         self.input_source_msg = "输入源目录："
         self.input_target_msg = "输入目标目录："
 
@@ -41,6 +41,7 @@ class CopyFileSystem:
     def start(self, window):
         self.window = window
         self.mode = input("输入模式({} {}) :".format(CopyFileSystem.MODE_COPYFILE,CopyFileSystem.MODE_DOWNLOAD_LRC))
+        self.finish_shutdown_switch = input("要在任务完成后关闭计算机吗？ Y/N")
 
         if self.mode == CopyFileSystem.MODE_COPYFILE:
             self.copy_files()
@@ -106,6 +107,8 @@ class CopyFileSystem:
             end_time = time.time()
             self.add_info(self.tips_point, "copy file success in Time：{}".format(end_time - start_time))
             # 任务完成自动关机
+            if self.finish_shutdown_switch.upper() == 'N':
+                self.finish_shutdown()
 
         except BaseException as e:
             self.add_info(self.error_msg_point, "Error {}".format(str(e)))
