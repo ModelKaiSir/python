@@ -1,6 +1,7 @@
 import pathlib
 import re
 import sys
+import lrc_util
 
 class ExitError(Exception):
 
@@ -73,8 +74,9 @@ def reset_file_name():
     pass
 
 
-rename_not_author()
+#rename_not_author()
 #reset_file_name()
 
 #string = "02 -我不會愛"
 #print(re.sub("[0-9]+.?(-)?","",string))
+lrc_util.LrcDownload(pathlib.Path("E:\MUSIC\华语\其他\花粥 - 出山.lrc")).download_lrc()

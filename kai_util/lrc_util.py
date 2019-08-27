@@ -100,7 +100,6 @@ class LrcDownload:
             try:
                 # 尝试将返回的数据解析成字符串
                 json_text = result_json.read().decode("utf-8")
-                print(json_text)
                 json_text = json_text[json_text.find("{"):json_text.rfind("}") + 1]
                 if bool(json_text and json_text.strip()):
                     return self.parse_song(json.loads(json_text))
@@ -213,7 +212,6 @@ class LrcDownload:
 
         _url = parse.quote_plus(url, safe=string.printable)
         _url = _url.replace("+", "%20")
-        print(_url)
 
         req = request.Request(url=_url, headers=headers)
 
