@@ -21,12 +21,13 @@ class CopyFileSystem:
         # 终端模式
         self.curses_mode = False
         self.window = None
+        self.has_error = False
         self.tips_point = 0
         self.error_msg_point = 30
         self.progress_point = 10
 
         self.read_size = 4096
-
+        self.finish_shutdown_switch = 'N'
         self.input_source_msg = "输入源目录："
         self.input_target_msg = "输入目标目录："
 
@@ -40,7 +41,11 @@ class CopyFileSystem:
 
     def start(self, window):
         self.window = window
+        self.mode = input("输入模式({} {}) :".format(CopyFileSystem.MODE_COPYFILE,CopyFileSystem.MODE_DOWNLOAD_LRC))
+        self.finish_shutdown_switch = input("要在任务完成后关闭计算机吗？ Y/N")
+
         if self.mode == CopyFileSystem.MODE_COPYFILE:
+            self.input_source_msg, self.input_target_msg = input(self.input_source_msg), input(self.input_target_msg)
             self.copy_files()
         elif self.mode == CopyFileSystem.MODE_DOWNLOAD_LRC:
             # 下载歌词
@@ -57,10 +62,7 @@ class CopyFileSystem:
                          encoding="GBK", stdout=sys.stdout)
         pass
 
-    def copy_files(self):
-
-        source_dir = input(self.input_source_msg)
-        target_dir = input(self.input_target_msg)
+    def copy_files(self, source_dir, target_dir):
 
         # 依次从目录的最上级往下 创建不存在的目录
         def create_dir(path: pathlib.Path):
@@ -80,7 +82,7 @@ class CopyFileSystem:
         start_time = time.time()
         pg_iter = file_generate.progress_tag()
         try:
-            for _path, _target_path in file_generate.generate_file(space, source_dir, target_dir, tag, source):
+            for _path, _target_path in file_generate.generate_not_exists_file(space, source_dir, target_dir, tag, source):
 
                 self.add_info(self.tips_point, "> source_dir {} target_dir {}".format(_path, _target_path))
                 # 创建不存在的目录 并将文件复制到目标目录
@@ -89,6 +91,8 @@ class CopyFileSystem:
                     create_dir(_target_path)
 
                 max_size = _path.stat().st_size
+
+                self.add_info(self.tips_point, "正在复制中。。。")
                 with _path.open(mode='rb') as _file, _target_path.open('wb') as _write:
                     cache_size = 0
                     while True:
@@ -97,17 +101,25 @@ class CopyFileSystem:
                             break
                         # 显示进度(%)
                         cache_size += len(_byte_data)
-                        info = "{} {:0.4%}".format(next(pg_iter), (cache_size / max_size))
-                        self.add_info(self.progress_point, info)
+                        # info = "{} {:0.4%}".format(next(pg_iter), (cache_size / max_size))
+                        # self.add_info(self.progress_point, info)
                         _write.write(_byte_data)
                     pass
+                self.add_info(self.tips_point, "复制完成。。。")
+            pass
             end_time = time.time()
             self.add_info(self.tips_point, "copy file success in Time：{}".format(end_time - start_time))
+
+            if self.has_error:
+                # 复制过程中有错误 再执行一次
+                self.has_error = False
+                self.copy_files(self.input_source_msg, self.input_target_msg)
             # 任务完成自动关机
-
+            if self.finish_shutdown_switch.upper() == 'N':
+                self.finish_shutdown()
         except BaseException as e:
-            self.add_info(self.error_msg_point, "Error {}".format(str(e)))
-
+            self.add_info(self.error_msg_point, "复制出错 继续下一首 Error {}".format(str(e)))
+            self.has_error = True
     pass
 
 
