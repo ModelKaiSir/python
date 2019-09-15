@@ -9,8 +9,9 @@ import curses
 
 # 文件管理工具
 class CopyFileSystem:
-    MODE_COPYFILE = "COPY_FILE"
-    MODE_DOWNLOAD_LRC = "DOWNLOAD_LRC"
+    MODE_COPYFILE = ("COPY_FILE", "复制文件")
+    MODE_DOWNLOAD_LRC = ("DOWNLOAD_LRC", "下载歌词（整个目录）")
+    DOWNLOAD_LRC = ("DLRC", "下载歌词（单个歌曲）")
 
     def __init__(self, mode):
         self.mode = mode
@@ -30,7 +31,7 @@ class CopyFileSystem:
         self.finish_shutdown_switch = 'N'
         self.input_source_msg = "输入源目录："
         self.input_target_msg = "输入目标目录："
-
+        self.modes = dict([CopyFileSystem.MODE_COPYFILE, CopyFileSystem.MODE_DOWNLOAD_LRC, CopyFileSystem.DOWNLOAD_LRC])
         pass
 
     def add_info(self, x, string):
@@ -41,16 +42,19 @@ class CopyFileSystem:
 
     def start(self, window):
         self.window = window
-        self.mode = input("输入模式({} {}) :".format(CopyFileSystem.MODE_COPYFILE,CopyFileSystem.MODE_DOWNLOAD_LRC))
+        self.mode = input("输入模式({}) :".format(" ".join(["{}:{}".format(a, b) for a, b in self.modes.items()])))
         self.finish_shutdown_switch = input("要在任务完成后关闭计算机吗？ Y/N")
 
-        if self.mode == CopyFileSystem.MODE_COPYFILE:
+        if self.mode == CopyFileSystem.MODE_COPYFILE[0]:
             self.input_source_msg, self.input_target_msg = input(self.input_source_msg), input(self.input_target_msg)
             self.copy_files()
-        elif self.mode == CopyFileSystem.MODE_DOWNLOAD_LRC:
+        elif self.mode == CopyFileSystem.MODE_DOWNLOAD_LRC[0]:
             # 下载歌词
             download_lrc(input("输入目录："))
             pass
+        elif self.mode == CopyFileSystem.DOWNLOAD_LRC[0]:
+            # 下载歌词 直接根据文件名下载歌词
+            download_sound_lrc(input("输入歌曲路径："))
         pass
 
     pass
@@ -82,7 +86,8 @@ class CopyFileSystem:
         start_time = time.time()
         pg_iter = file_generate.progress_tag()
         try:
-            for _path, _target_path in file_generate.generate_not_exists_file(space, source_dir, target_dir, tag, source):
+            for _path, _target_path in file_generate.generate_not_exists_file(space, source_dir, target_dir, tag,
+                                                                              source):
 
                 self.add_info(self.tips_point, "> source_dir {} target_dir {}".format(_path, _target_path))
                 # 创建不存在的目录 并将文件复制到目标目录
@@ -120,6 +125,7 @@ class CopyFileSystem:
         except BaseException as e:
             self.add_info(self.error_msg_point, "复制出错 继续下一首 Error {}".format(str(e)))
             self.has_error = True
+
     pass
 
 
@@ -127,6 +133,20 @@ def download_lrc(source_dir):
     for _path in file_generate.generate_not_exists_lrc_sound(source_dir):
         try:
             d = lrc_util.LrcDownload(_path)
+            d.download_lrc()
+            time.sleep(0.2)
+        except BaseException as e:
+            print("网络出错！Error{}".format(str(e)))
+        pass
+    pass
+
+
+def download_sound_lrc(source_dir):
+    source_path = pathlib.Path(source_dir)
+    _file_lrc = source_path.with_suffix(".lrc")
+    if not _file_lrc.exists():
+        try:
+            d = lrc_util.LrcDownload(pathlib.Path(_file_lrc))
             d.download_lrc()
             time.sleep(0.2)
         except BaseException as e:
