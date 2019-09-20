@@ -144,29 +144,33 @@ class FindClassToZip(Menu):
             else:
                 # 查找所有文件
                 self.context.printText(root_path_temp)
+                self.findFile(root_path_temp, suffix=suffix, no_check=True)
                 pass
 
         pass
 
-    def findFile(self, path, file_name="*", suffix="class"):
+    def findFile(self, path, file_name="*", suffix="class", no_check=False):
         regex = r'(' + file_name + ').*(\.' + suffix + ')'
         result = []
         # 读取path下面所有文件，并进行正则过滤
         for file_item in os.listdir(path):
-            self.checkAndSetFile(file_item, regex, result)
+            self.checkAndSetFile(file_item, regex, result, no_check)
 
         self.packFiles(path, result)
 
         pass
 
     # 检查文件并放入集合
-    def checkAndSetFile(self, file_path, regex, result):
+    def checkAndSetFile(self, file_path, regex, result, no_check=False):
         if os.path.isdir(file_path):
             for file_item in os.listdir(file_path):
                 self.checkAndSetFile(file_item, regex, result)
         else:
-            if re.match(regex, file_path) is not None:
+            if no_check:
                 result.append(file_path)
+            elif re.match(regex, file_path) is not None:
+                result.append(file_path)
+
         pass
 
     # 打包并写入ReadeMe
@@ -230,7 +234,7 @@ class SqlHandle(Menu):
 
     def currentRun(self):
 
-        with open(self.SQL_DATA_PATH, mode='r') as f:
+        with open(self.SQL_DATA_PATH, mode='r', encoding='utf-8') as f:
             # 读取所有sql
             for line in f.readlines():
                 self.sql_text += line
