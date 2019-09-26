@@ -112,27 +112,45 @@ class FindClassToZip(Menu):
 
         self.CONFIG_FIND_CLASS = "findClassConfig"
         self.CONFIG_ZIP_PATH = "zipPath"
+        self.CONFIG_ZIP_ROOT_PATH = "zipRootPath"
         self.CONFIG_README = "readMe"
         self.INPUT_MSG = "请输入需要处理的路径："
         self.readme_filename = "path.txt"
         self.def_suffix = "class"
+        self.more_pack = False
+        self.init_pack = True
+        self.pack_length = 1
 
         self.config = Config().getConfig()
         self.pathMap = self.config[Config.PATH_MAP]
         self.README_TEXT = self.config[self.CONFIG_FIND_CLASS][self.CONFIG_README]
         self.PACK_PATH = self.config[self.CONFIG_FIND_CLASS][self.CONFIG_ZIP_PATH]
+        self.PACK_ROOT_PATH = self.config[self.CONFIG_FIND_CLASS][self.CONFIG_ZIP_ROOT_PATH]
         self.README_PATH = "{}\\{}".format(self.util.get_desktop_path(), self.readme_filename)
 
         pass
 
     def currentRun(self):
         input_string = input(self.INPUT_MSG)
-        parameter = input_string.split(":")
+        parameter = input_string.split("|")
+        self.pack_length = len(parameter)
+        self.more_pack = self.pack_length > 1
+        zip_file_it = self.generate_pack_name(self.pack_length)
+        for p in parameter:
+            self.start_find(p.split(":"), zip_file_it)
+        pass
+
+    def start_find(self, parameter, zip_file_it):
+
+        result = []
+
         if len(parameter) > 0:
-            tag, package_name, suffix = parameter[0], parameter[1], input_string[2] if len(
+            tag, package_name, suffix = parameter[0], parameter[1], parameter[2] if len(
                 parameter) > 2 else self.def_suffix
             # 根据tag找根目录
             root_path = self.pathMap.get(tag)
+
+            # com.a.b.c.a,b,c => com/a/b/c/a,b,c
             root_path_temp = "{}{}".format(root_path, "\\".join(i for i in package_name.split(".")))
 
             if os.path.isfile("{}.{}".format(root_path_temp, suffix)):
@@ -140,23 +158,34 @@ class FindClassToZip(Menu):
                 detail_path, last_name = "\\".join(i for i in package_name.split(".")[:-1]), package_name.split(".")[
                                                                                              -1:]
                 # 如果整个目录不是一个文件夹则lastName就是要查找的文件名
-                self.findFile("{}{}".format(root_path, detail_path), last_name[0], suffix)
+                path = "{}{}".format(root_path, detail_path)
+                self.findFile(path, last_name[0], suffix, result=result)
             else:
                 # 查找所有文件
                 self.context.printText(root_path_temp)
-                self.findFile(root_path_temp, suffix=suffix, no_check=True)
+                detail_path = "\\".join(i for i in package_name.split(".")[:-1])
+                last_name = "".join(package_name.split(".")[-1:])
+
+                # 检查是否带有文件名列表
+                if last_name.find(",") != -1:
+                    path = "{}{}".format(root_path, detail_path)
+                    self.findFile(path, file_name=last_name.replace(',', '|'),
+                                  suffix=suffix, result=result)
+                else:
+                    path = root_path_temp
+                    self.findFile(path, suffix=suffix, no_check=True, result=result)
                 pass
+
+            self.packFiles(path, result, zip_file_it)
 
         pass
 
-    def findFile(self, path, file_name="*", suffix="class", no_check=False):
-        regex = r'(' + file_name + ').*(\.' + suffix + ')'
-        result = []
-        # 读取path下面所有文件，并进行正则过滤
-        for file_item in os.listdir(path):
-            self.checkAndSetFile(file_item, regex, result, no_check)
+    def findFile(self, root_path, file_name="*", suffix="class", no_check=False, result=[]):
+        regex = r'(' + file_name + ').*(\.' + suffix + ')$'
 
-        self.packFiles(path, result)
+        # 读取path下面所有文件，并进行正则过滤
+        for file_item in os.listdir(root_path):
+            self.checkAndSetFile(file_item, regex, result, no_check)
 
         pass
 
@@ -173,8 +202,15 @@ class FindClassToZip(Menu):
 
         pass
 
+    def generate_pack_name(self, pack_length):
+        while pack_length >= 1:
+            result = "替换{}.zip".format(pack_length)
+            pack_length -= 1
+            yield result
+        pass
+
     # 打包并写入ReadeMe
-    def packFiles(self, path, result):
+    def packFiles(self, path, result, zip_file_it=None):
 
         # 创建ReadMe
         def writeReadMe(source, _path):
@@ -183,25 +219,44 @@ class FindClassToZip(Menu):
             pass
 
         # 打包zip
-        def pack(source, _folder, _result):
+        def pack(source, _folder, _result, fit):
 
-            with zipfile.ZipFile(source.PACK_PATH, "a") as z:
+            zip_file_path = "{}/{}".format(source.PACK_ROOT_PATH,
+                                           next(fit)) if source.more_pack else source.PACK_PATH
+
+            with zipfile.ZipFile(zip_file_path, "a") as z:
                 for r in _result:
                     _F = "{}/{}".format(path, r[r.rfind("\\") + 1:])
                     print("{}\\{}".format(_folder, r))
                     z.write(_F, "{}\\{}".format(_folder, r), compress_type=zipfile.ZIP_DEFLATED)
 
-            with zipfile.ZipFile(source.PACK_PATH, "a") as z2:
+            with zipfile.ZipFile(zip_file_path, "a") as z2:
                 z2.write(source.README_PATH, "path.txt", compress_type=zipfile.ZIP_DEFLATED)
+                pass
             os.remove(source.README_PATH)
             pass
 
+        def delete_file(file_path):
+            if pathlib.Path(file_path).is_file():
+                os.remove(file_path)
+            pass
+
+        # 打包之前初始化 只初始化一次
+        def init(source):
+            if source.init_pack:
+                if source.more_pack:
+                    for v in source.generate_pack_name(source.pack_length):
+                        delete_file("{}/{}".format(source.PACK_ROOT_PATH, v))
+                else:
+                    delete_file(source.PACK_PATH)
+
+                source.init_pack = False
+
         try:
-            if pathlib.Path(self.PACK_PATH).is_file():
-                os.remove(self.PACK_PATH)
+            init(self)
             #
             writeReadMe(self, path)
-            pack(self, path.split("\\")[-1:][0], result)
+            pack(self, path.split("\\")[-1:][0], result, zip_file_it)
             self.context.printText("job Done")
         except Exception as e:
             self.context.printText(str(e))
@@ -623,3 +678,6 @@ class GenerateMD5(Menu):
             return cal(source.encode('UTF-8'))
             pass
         pass
+
+# POS61:com.techtrans.vaadin.espos61.mis.mall.ec.smsc.make.MakeTicke4DepositFunctionMain,MakeTickePrintFunctionMain
+# POS61:com.techtrans.vaadin.espos61.mis.mall.ec.smsc.make.MakeTicke4DepositFunctionMain|POS61:com.techtrans.vaadin.espos61.mis.mall.ec.smsc.make.MakeTickePrintFunctionMain

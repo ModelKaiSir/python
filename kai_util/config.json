@@ -6,7 +6,8 @@
   },
   "findClassConfig": {
     "readMe":"[要重启tomcat]替换war解压的tomcat下对应路径：{path} \n#所有代码已提交，请不要再问有没有提交代码",
-    "zipPath": "C:\\Users\\admin\\Desktop\\替换.zip"
+    "zipPath": "C:\\Users\\admin\\Desktop\\替换.zip",
+    "zipRootPath": "C:\\Users\\admin\\Desktop"
   },
   "sqlHandle": {
     "sqlDataHandlePath": "C:\\Users\\admin\\Desktop\\sqlDataHandle.txt"
