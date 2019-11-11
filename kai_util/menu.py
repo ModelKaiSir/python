@@ -329,6 +329,7 @@ class ImportDmp(Menu):
     def _init(self, context, text, tips):
         self.CONFIG_IMPORT_DMP = "ImportDmp"
         self.CONFIG_DATA_PATH = "configPath"
+        self.IMP_SHELL = "impShell"
         self.CONFIG_DATA_BEFORE_SQL_LIST = "beforeSqlList"
         self.config = Config().getConfig()
 
@@ -338,8 +339,7 @@ class ImportDmp(Menu):
         self.ready = "准备好,按回车开始导库："
         self.finish = "导库{title}完毕！"
         # 导库语句
-        self.import_shell = "imp {TO_DATABASE_NAME:}/{TO_DATABASE_NAME:}@ORA100 " \
-                            "fromuser={FORM_DATABASE_NAME:} touser={TO_DATABASE_NAME:} file={DMP_PATH}"
+        self.import_shell = self.config[self.CONFIG_IMPORT_DMP][self.IMP_SHELL]
 
         Menu.__init__(self, context, text, tips.format(
             configPath=self.CONFIG_PATH))

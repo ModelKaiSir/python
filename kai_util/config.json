@@ -13,6 +13,7 @@
     "sqlDataHandlePath": "C:\\Users\\admin\\Desktop\\sqlDataHandle.txt"
   },
   "ImportDmp": {
+    "impShell":"imp {TO_DATABASE_NAME:}/{TO_DATABASE_NAME:}@ORA100 fromuser={FORM_DATABASE_NAME:} touser={TO_DATABASE_NAME:} file={DMP_PATH}",
     "configPath": "C:\\Users\\admin\\Desktop\\dmpImp.txt",
     "beforeSqlList": [
       "DROP USER {TO_DATABASE_NAME} CASCADE;",
